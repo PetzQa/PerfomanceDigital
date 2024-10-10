@@ -4,7 +4,7 @@ jobs:
   jmeter_job:
     runs-on: ubuntu-latest
     name: JMeter Test Execution
-    steps:      
+    steps:
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -12,22 +12,23 @@ jobs:
         run: mkdir -p reports/html  # Cria a pasta para os relatórios
 
       - name: Run JMeter Tests
-        uses: adriandw/run-jmeter@v1  # Use a ação JMeter adequada
-        with:
-          test-plan-path: ./TestPlans/S01_SimpleExample/S01_SimpleExample.jmx
-          args: "-e -o ./reports/html/"
+        run: |
+          for test_file in ./PerformanceDigital/**/*.jmx; do
+            echo "Running JMeter test: $test_file"
+            jmeter -n -t "$test_file" -e -o ./reports/html/"$(basename "$test_file" .jmx)"  # Executa o teste JMeter e gera o relatório
+          done
         continue-on-error: true  # Continua mesmo se o teste falhar
 
       - name: Upload Results
         uses: actions/upload-artifact@v3
         with:
           name: jmeter-results
-          path: result.jtl
+          path: reports/**/*.jtl  # Coleta todos os arquivos JTL gerados
           if-no-files-found: error
 
       - name: Upload HTML Reports
         uses: actions/upload-artifact@v3
         with:
           name: jmeter-reports
-          path: reports
+          path: reports/html  # Ajuste conforme a estrutura do seu repositório
           if-no-files-found: error
