@@ -8,9 +8,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Install JMeter
+      - name: Install JMeter and Fix Java Certificates
         run: |
           sudo apt-get update
+          sudo apt-get install -y ca-certificates  # Instala os certificados CA necessários
+          sudo /var/lib/dpkg/info/ca-certificates-java.postinst configure  # Corrige o erro do cacerts
           sudo apt-get install -y default-jdk  # Instala Java necessário para rodar o JMeter
           wget https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.5.tgz
           tar -xvzf apache-jmeter-5.5.tgz
