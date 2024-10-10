@@ -39,4 +39,7 @@ jobs:
           jmeter -g resultados.jtl -o relatórios
 
       - name: Fazer upload dos relatórios
-        uses: actions/upload-artifact@
+        uses: actions/upload-artifact@v3
+        with:
+          name: jmeter-relatorios
+          path: relatórios/
