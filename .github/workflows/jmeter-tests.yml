@@ -8,27 +8,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Install JMeter
+        run: sudo apt-get install -y jmeter  # Instala o JMeter no ambiente
+
       - name: Create reports directory
-        run: mkdir -p reports/html reports/jtl  # Cria as pastas para os relatórios e resultados
+        run: mkdir -p PerformanceDigital/reports/jtl PerformanceDigital/reports/html  # Cria as pastas para os relatórios dentro da pasta PerformanceDigital
 
       - name: Run JMeter Tests
         run: |
           for test_file in ./PerformanceDigital/**/*.jmx; do
             echo "Running JMeter test: $test_file"
-            jmeter -n -t "$test_file" -l ./reports/jtl/"$(basename "$test_file" .jmx)".jtl -e -o ./reports/html/"$(basename "$test_file" .jmx)"  # Executa o teste JMeter, gera o .jtl e o relatório
+            jmeter -n -t "$test_file" -l ./PerformanceDigital/reports/jtl/"$(basename "$test_file" .jmx)".jtl -e -o ./PerformanceDigital/reports/html/"$(basename "$test_file" .jmx)"
           done
         continue-on-error: true  # Continua mesmo se o teste falhar
+
+      - name: List generated files
+        run: ls -R PerformanceDigital/reports  # Lista os arquivos gerados nas pastas de relatórios
 
       - name: Upload JTL Results
         uses: actions/upload-artifact@v3
         with:
           name: jmeter-results
-          path: reports/jtl/**/*.jtl  # Coleta todos os arquivos JTL gerados
+          path: PerformanceDigital/reports/jtl/**/*.jtl  # Coleta todos os arquivos JTL gerados
           if-no-files-found: error
 
       - name: Upload HTML Reports
         uses: actions/upload-artifact@v3
         with:
           name: jmeter-reports
-          path: reports/html  # Coleta os relatórios em HTML
+          path: PerformanceDigital/reports/html  # Ajuste conforme a estrutura do seu repositório
           if-no-files-found: error
