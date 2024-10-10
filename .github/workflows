@@ -1,1 +1,47 @@
+on: [push]
 
+jobs:
+  jmeter_job:
+    runs-on: ubuntu-latest
+    name: JMeter Test Execution
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Verificar a instalação do JMeter
+      - name: Check JMeter Installation
+        run: jmeter --version
+
+      # Criar diretórios para relatórios JTL e HTML
+      - name: Create reports directory
+        run: mkdir -p reports/jtl reports/html  # Cria as pastas necessárias
+
+      # Rodar os testes JMeter e gerar relatórios JTL e HTML
+      - name: Run JMeter Tests
+        run: |
+          for test_file in ./PerformanceDigital/**/*.jmx; do
+            echo "Running JMeter test: $test_file"
+            # Gera os arquivos .jtl e relatórios HTML usando caminho absoluto
+            jmeter -n -t "$test_file" -l ${{ github.workspace }}/reports/jtl/"$(basename "$test_file" .jmx)".jtl -e -o ${{ github.workspace }}/reports/html/"$(basename "$test_file" .jmx)" || echo "JMeter test failed for $test_file"
+          done
+        continue-on-error: true  # Continua mesmo se o teste falhar
+
+      # Listar arquivos JTL gerados
+      - name: List generated JTL files
+        run: ls -R reports/jtl
+
+      # Fazer upload dos arquivos JTL
+      - name: Upload JTL Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: jmeter-results
+          path: reports/jtl/**/*.jtl  # Verifica todos os arquivos JTL gerados
+          if-no-files-found: error
+
+      # Fazer upload dos relatórios HTML gerados
+      - name: Upload HTML Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: jmeter-reports
+          path: reports/html  # Ajuste conforme a estrutura do seu repositório
+          if-no-files-found: error
