@@ -22,9 +22,9 @@ jobs:
 
       - name: Baixar e extrair JMeter
         run: |
-          wget https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.5.tgz
-          tar -xvzf apache-jmeter-5.5.tgz
-          export PATH=$PATH:$(pwd)/apache-jmeter-5.5/bin
+          wget https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.5.1.tgz
+          tar -xvzf apache-jmeter-5.5.1.tgz
+          export PATH=$PATH:$(pwd)/apache-jmeter-5.5.1/bin
           echo "JMeter adicionado ao PATH."
 
       - name: Executar cenários JMeter
