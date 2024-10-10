@@ -1,0 +1,45 @@
+name: JMeter Tests
+
+on:
+  push:
+    branches:
+      - main  # Ou main, conforme sua branch principal
+  pull_request:
+
+jobs:
+  run-jmeter-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+
+      - name: Install JMeter
+        run: |
+          sudo apt-get update
+          sudo apt-get install jmeter -y
+
+      - name: Run all JMX scenarios
+        run: |
+          for file in jmeter-scenarios/*.jmx; do
+            echo "Running scenario: $file"
+            jmeter -n -t "$file" -l "results-$(basename "$file" .jmx).jtl"
+          done
+
+      - name: Generate JMeter HTML Report
+        run: |
+          mkdir -p reports
+          for result in results-*.jtl; do
+            jmeter -g "$result" -o "./reports/$(basename "$result" .jtl)-report"
+          done
+
+      - name: Upload JMeter Reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: jmeter-reports
+          path: ./reports
