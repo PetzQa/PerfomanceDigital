@@ -1,31 +1,42 @@
+name: Run JMeter Tests
+
 on: [push]
 
 jobs:
-  jmeter_job:
+  jmeter:
     runs-on: ubuntu-latest
-    name: JMeter Test Execution
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checar repositório
+        uses: actions/checkout@v2
 
-      - name: Install JMeter
+      - name: Instalar Java e pacotes necessários
         run: |
           sudo apt-get update
-          sudo apt-get install -y openjdk-11-jdk  # Instala Java necessário
+          sudo apt-get install -y openjdk-11-jdk ca-certificates-java
+
+      - name: Configurar JAVA_HOME
+        run: echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" >> $GITHUB_ENV
+
+      - name: Verificar Java
+        run: java -version
+
+      - name: Baixar e extrair JMeter
+        run: |
           wget https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.5.tgz
           tar -xvzf apache-jmeter-5.5.tgz
-          export PATH=$PATH:$(pwd)/apache-jmeter-5.5/bin  # Adiciona JMeter ao PATH
+          export PATH=$PATH:$(pwd)/apache-jmeter-5.5/bin
+          echo "JMeter adicionado ao PATH."
 
-      - name: Run JMeter Tests
+      - name: Executar cenários JMeter
         run: |
-          mkdir -p reports/jtl reports/html  # Cria os diretórios para relatórios
-          for test_file in ./PerformanceDigital/**/*.jmx; do
-            echo "Running JMeter test: $test_file"
-            jmeter -n -t "$test_file" -l reports/jtl/"$(basename "$test_file" .jmx)".jtl -e -o reports/html/"$(basename "$test_file" .jmx)" || echo "Test $test_file failed, but continuing..."
-          done
+          # Execute seu arquivo .jmx aqui
+          # Substitua 'seuscenarios.jmx' pelo caminho correto do seu arquivo .jmx
+          jmeter -n -t seuscenarios.jmx -l resultados.jtl -j jmeter.log
 
-      - name: Upload HTML Reports
-        uses: actions/upload-artifact@v3
-        with:
-          name: jmeter-html-report
-          path: reports/html
+      - name: Criar relatório HTML
+        run: |
+          # Gera o relatório HTML com os resultados
+          jmeter -g resultados.jtl -o relatórios
+
+      - name: Fazer upload dos relatórios
+        uses: actions/upload-artifact@
