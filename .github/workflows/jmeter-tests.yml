@@ -5,43 +5,41 @@ jobs:
     runs-on: ubuntu-latest
     name: JMeter Test Execution
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Verificar a instalação do JMeter
-      - name: Check JMeter Installation
-        run: jmeter --version
+      - name: Install JMeter
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y default-jdk  # Instala Java necessário para rodar o JMeter
+          wget https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.5.tgz
+          tar -xvzf apache-jmeter-5.5.tgz
+          export PATH=$PATH:$(pwd)/apache-jmeter-5.5/bin  # Adiciona JMeter ao PATH
 
-      # Criar diretórios para relatórios JTL e HTML
+      - name: Verify JMeter Installation
+        run: jmeter --version  # Verifica se o JMeter está instalado corretamente
+
       - name: Create reports directory
-        run: mkdir -p reports/jtl reports/html  # Cria as pastas necessárias
+        run: mkdir -p PerformanceDigital/reports/jtl PerformanceDigital/reports/html
 
-      # Rodar os testes JMeter e gerar relatórios JTL e HTML
       - name: Run JMeter Tests
         run: |
           for test_file in ./PerformanceDigital/**/*.jmx; do
             echo "Running JMeter test: $test_file"
-            # Gera os arquivos .jtl e relatórios HTML usando caminho absoluto
-            jmeter -n -t "$test_file" -l ${{ github.workspace }}/reports/jtl/"$(basename "$test_file" .jmx)".jtl -e -o ${{ github.workspace }}/reports/html/"$(basename "$test_file" .jmx)" || echo "JMeter test failed for $test_file"
+            jmeter -n -t "$test_file" -l ./PerformanceDigital/reports/jtl/"$(basename "$test_file" .jmx)".jtl -e -o ./PerformanceDigital/reports/html/"$(basename "$test_file" .jmx)"
           done
         continue-on-error: true  # Continua mesmo se o teste falhar
 
-      # Listar arquivos JTL gerados
-      - name: List generated JTL files
-        run: ls -R reports/jtl
-
-      # Fazer upload dos arquivos JTL
       - name: Upload JTL Results
         uses: actions/upload-artifact@v3
         with:
           name: jmeter-results
-          path: reports/jtl/**/*.jtl  # Verifica todos os arquivos JTL gerados
+          path: PerformanceDigital/reports/jtl/**/*.jtl
           if-no-files-found: error
 
-      # Fazer upload dos relatórios HTML gerados
       - name: Upload HTML Reports
         uses: actions/upload-artifact@v3
         with:
           name: jmeter-reports
-          path: reports/html  # Ajuste conforme a estrutura do seu repositório
+          path: PerformanceDigital/reports/html
           if-no-files-found: error
