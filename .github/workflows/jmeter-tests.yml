@@ -1,37 +1,40 @@
-name: JMeter Performance Tests
-
-on:
-  push:
-    branches:
-      - main # Ou a branch que você deseja monitorar
+on: [push]
 
 jobs:
-  jmeter:
+  jmeter_job:
     runs-on: ubuntu-latest
-
+    name: JMeter Test Execution
     steps:
-    - name: Check out the repository
-      uses: actions/checkout@v2
+      # Faz o checkout do código
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    - name: Set up JMeter
-      run: |
-        # Baixar e instalar o JMeter
-        wget https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.5.tgz
-        tar -xzf apache-jmeter-5.5.tgz
-        sudo mv apache-jmeter-5.5 /opt/jmeter
-        echo "export JMETER_HOME=/opt/jmeter" >> $GITHUB_ENV
-        echo "export PATH=\$PATH:\$JMETER_HOME/bin" >> $GITHUB_ENV
+      # Cria o diretório para os relatórios
+      - name: Create reports directory
+        run: mkdir -p reports/jtl reports/html  # Cria as pastas para os relatórios e arquivos JTL
 
-    - name: Run JMeter tests
-      run: |
-        # Executar o teste JMX
-        jmeter -n -t PerformanceDigital/Anônimo,\ redirect\ de\ login\ -\ Busca\ home\ "Termos\ mais\ buscados".jmx -l results.jtl -j jmeter.log
-      continue-on-error: true  # Continua mesmo com falhas nos testes
+      # Executa os testes JMeter
+      - name: Run JMeter Tests
+        run: |
+          for test_file in ./PerformanceDigital/**/*.jmx; do
+            echo "Running JMeter test: $test_file"
+            # Gera os arquivos .jtl e os relatórios HTML
+            jmeter -n -t "$test_file" -l reports/jtl/"$(basename "$test_file" .jmx)".jtl -e -o reports/html/"$(basename "$test_file" .jmx)"  # Corrigido para gerar arquivo JTL
+          done
+        continue-on-error: true  # Continua mesmo se o teste falhar
 
-    - name: Upload test results
-      uses: actions/upload-artifact@v3  # Atualizado para a versão mais recente
-      with:
-        name: jmeter-results
-        path: |
-          results.jtl
-          jmeter.log
+      # Faz o upload dos arquivos JTL gerados
+      - name: Upload JTL Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: jmeter-results
+          path: reports/jtl/**/*.jtl  # Caminho corrigido para os arquivos JTL
+          if-no-files-found: error
+
+      # Faz o upload dos relatórios HTML gerados
+      - name: Upload HTML Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: jmeter-reports
+          path: reports/html/**/*  # Ajustado para incluir todos os arquivos HTML gerados
+          if-no-files-found: error
