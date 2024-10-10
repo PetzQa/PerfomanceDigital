@@ -11,29 +11,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Passo 1: Clonar o repositório
       - name: Check out the code
         uses: actions/checkout@v2
 
+      # Passo 2: Configurar o JDK 11 para rodar os testes do JMeter
       - name: Set up JDK 11
         uses: actions/setup-java@v2
         with:
           java-version: '11'
 
+      # Passo 3: Executar os cenários do JMeter com a action correta
       - name: Run JMeter tests
         uses: grafana/jmeter-runner-action@v3.1.0
         with:
           testfiles: "jmeter-scenarios/*.jmx"  # Apontando para a pasta onde seus cenários JMX estão
           results_file: "results/result.jtl"    # Define o local dos resultados dos testes
 
+      # Passo 4: Gerar relatórios HTML do JMeter para cada arquivo de resultado
       - name: Generate JMeter HTML Report
         run: |
-          mkdir -p reports
-          for result in results-*.jtl; do
+          mkdir -p reports  # Garante que a pasta de relatórios seja criada
+          for result in results/*.jtl; do   # Loop pelos arquivos .jtl
             jmeter -g "$result" -o "./reports/$(basename "$result" .jtl)-report"
           done
 
+      # Passo 5: Fazer upload dos relatórios gerados como artefatos do GitHub Actions
       - name: Upload JMeter Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4  # Atualizado para a versão 4
         with:
           name: jmeter-reports
-          path: ./reports
+          path: ./reports  # Upload da pasta de relatórios
