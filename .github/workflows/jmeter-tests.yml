@@ -5,36 +5,35 @@ jobs:
     runs-on: ubuntu-latest
     name: JMeter Test Execution
     steps:
+      # Checkout do repositório
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install JMeter
-        run: sudo apt-get install -y jmeter  # Instala o JMeter no ambiente
-
+      # Criação dos diretórios para os relatórios
       - name: Create reports directory
-        run: mkdir -p PerformanceDigital/reports/jtl PerformanceDigital/reports/html  # Cria as pastas para os relatórios dentro da pasta PerformanceDigital
+        run: mkdir -p PerformanceDigital/reports/jtl PerformanceDigital/reports/html  # Cria as pastas para os relatórios JTL e HTML
 
+      # Execução dos testes JMeter
       - name: Run JMeter Tests
         run: |
           for test_file in ./PerformanceDigital/**/*.jmx; do
             echo "Running JMeter test: $test_file"
-            jmeter -n -t "$test_file" -l ./PerformanceDigital/reports/jtl/"$(basename "$test_file" .jmx)".jtl  # Executa o teste JMeter e salva o JTL
+            # Gera os arquivos .jtl e os relatórios HTML
+            jmeter -n -t "$test_file" -l ./PerformanceDigital/reports/jtl/"$(basename "$test_file" .jmx)".jtl -e -o ./PerformanceDigital/reports/html/"$(basename "$test_file" .jmx)"
           done
-        continue-on-error: true  # Continua mesmo se o teste falhar
 
-      - name: List generated files
-        run: ls -R PerformanceDigital/reports  # Lista os arquivos gerados nas pastas de relatórios
-
+      # Upload dos arquivos .jtl gerados
       - name: Upload JTL Results
         uses: actions/upload-artifact@v3
         with:
           name: jmeter-results
-          path: PerformanceDigital/reports/jtl/**/*.jtl  # Coleta todos os arquivos JTL gerados
-          if-no-files-found: error
+          path: PerformanceDigital/reports/jtl/**/*.jtl  # Captura todos os arquivos .jtl gerados
+          if-no-files-found: error  # Lança erro se nenhum arquivo .jtl for encontrado
 
+      # Upload dos relatórios HTML gerados
       - name: Upload HTML Reports
         uses: actions/upload-artifact@v3
         with:
           name: jmeter-reports
-          path: PerformanceDigital/reports/html  # Ajuste conforme a estrutura do seu repositório
-          if-no-files-found: error
+          path: PerformanceDigital/reports/html/**/*  # Captura todos os relatórios HTML gerados
+          if-no-files-found: error  # Lança erro se nenhum relatório HTML for encontrado
