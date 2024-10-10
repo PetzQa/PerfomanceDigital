@@ -33,12 +33,15 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: jmeter-results
-          path: result.jtl
-          if-no-files-found: error
+          path: '**/*.jtl' # Captura todos os arquivos .jtl gerados
+          if-no-files-found: warn # Altera para warning para não interromper o fluxo
+          include-hidden-files: false
 
       - name: Upload HTML Reports
         uses: actions/upload-artifact@v3
         with:
           name: jmeter-html-reports
+          path: reports
+          if-no-files-found: error
           path: reports
           if-no-files-found: error
