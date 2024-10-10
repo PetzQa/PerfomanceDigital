@@ -26,20 +26,25 @@ jobs:
       - name: Rodar testes JMeter
         uses: QAInsights/PerfAction@v5.6.2
         with:
-          test-plan-path: ./TestPlans/**/*.jmx # Lê todos os arquivos .jmx
+          test-plan-path: ./TestPlans/**/*.jmx
           args: "-e -o ./reports/html/"
+
+      - name: Listar arquivos após a execução do JMeter
+        run: |
+          echo "Arquivos gerados:"
+          ls -R
 
       - name: Upload Results
         uses: actions/upload-artifact@v3
         with:
           name: jmeter-results
-          path: '**/*.jtl' # Captura todos os arquivos .jtl gerados
-          if-no-files-found: warn # Altera para warning para não interromper o fluxo
+          path: ./**/*.jtl
+          if-no-files-found: warn
           include-hidden-files: false
 
       - name: Upload HTML Reports
         uses: actions/upload-artifact@v3
         with:
           name: jmeter-html-reports
-          path: reports
+          path: ./reports/** 
           if-no-files-found: error
