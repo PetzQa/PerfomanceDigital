@@ -3,7 +3,7 @@ name: JMeter Tests
 on:
   push:
     branches:
-      - main  # Ou main, conforme sua branch principal
+      - main  # Ou substitua para 'master' se sua branch principal for 'master'
   pull_request:
 
 jobs:
@@ -19,22 +19,13 @@ jobs:
         with:
           java-version: '11'
 
-      - name: Install Apache JMeter
-        uses: apachesoft/apache-jmeter@v1
-
-      - name: Run all JMX scenarios
-        run: |
-          for file in jmeter-scenarios/*.jmx; do
-            echo "Running scenario: $file"
-            jmeter -n -t "$file" -l "results-$(basename "$file" .jmx).jtl"
-          done
-
-      - name: Generate JMeter HTML Report
-        run: |
-          mkdir -p reports
-          for result in results-*.jtl; do
-            jmeter -g "$result" -o "./reports/$(basename "$result" .jtl)-report"
-          done
+      - name: Install and run JMeter tests
+        uses: adriandw/run-jmeter@v1.0.2
+        with:
+          testfiles: "jmeter-scenarios/*.jmx"  # Apontando para a pasta onde seus cenários JMX estão
+          results_file: "results/result.jtl"    # Define o local dos resultados dos testes
+          generate_report: true                 # Habilita a geração automática de relatórios
+          report_dir: "./reports"               # Local dos relatórios gerados
 
       - name: Upload JMeter Reports
         uses: actions/upload-artifact@v4
