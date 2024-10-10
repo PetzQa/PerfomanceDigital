@@ -1,44 +1,42 @@
-name: Run JMeter Tests
+name: JMeter Tests
 
 on: [push]
 
 jobs:
   jmeter:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checar repositório
-        uses: actions/checkout@v2
+      - name: Check out code
+        uses: actions/checkout@v3
 
-      - name: Instalar Java e pacotes necessários
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y openjdk-11-jdk ca-certificates-java
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
 
-      - name: Configurar JAVA_HOME
-        run: echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" >> $GITHUB_ENV
-
-      - name: Verificar Java
-        run: java -version
-
-      - name: Criar diretório para relatórios
+      - name: Create reports directory
         run: mkdir -p reports
 
-      - name: Rodar testes JMeter
+      - name: Download JMeter
+        run: |
+          wget https://downloads.apache.org/jmeter/binaries/apache-jmeter-5.5.tgz
+          tar -xvzf apache-jmeter-5.5.tgz
+          export PATH=$PATH:$(pwd)/apache-jmeter-5.5/bin
+          echo "JMeter adicionado ao PATH."
+
+      - name: Run JMeter Tests
         uses: QAInsights/PerfAction@v5.6.2
         with:
-          test-plan-path: ./TestPlans/**/*.jmx
+          test-plan-path: ./TestPlans/seu_plano_de_teste.jmx
           args: "-e -o ./reports/html/"
-
-      - name: Listar arquivos após a execução do JMeter
-        run: |
-          echo "Arquivos gerados:"
-          ls -R
 
       - name: Upload Results
         uses: actions/upload-artifact@v3
         with:
           name: jmeter-results
-          path: ./**/*.jtl
+          path: PerformanceDigital/*.jtl
           if-no-files-found: warn
           include-hidden-files: false
 
@@ -46,5 +44,6 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: jmeter-html-reports
-          path: ./reports/** 
+          path: reports
           if-no-files-found: error
+          include-hidden-files: false
