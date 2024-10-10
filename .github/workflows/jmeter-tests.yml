@@ -19,10 +19,8 @@ jobs:
         with:
           java-version: '11'
 
-      - name: Install JMeter
-        run: |
-          sudo apt-get update
-          sudo apt-get install jmeter -y
+      - name: Install Apache JMeter
+        uses: apachesoft/apache-jmeter@v1
 
       - name: Run all JMX scenarios
         run: |
@@ -39,7 +37,7 @@ jobs:
           done
 
       - name: Upload JMeter Reports
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: jmeter-reports
           path: ./reports
