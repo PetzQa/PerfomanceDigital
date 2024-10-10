@@ -8,40 +8,24 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Install JMeter and Fix Java Certificates
+      - name: Install JMeter
         run: |
           sudo apt-get update
-          sudo apt-get install -y ca-certificates  # Instala os certificados CA necessários
-          sudo /var/lib/dpkg/info/ca-certificates-java.postinst configure  # Corrige o erro do cacerts
-          sudo apt-get install -y default-jdk  # Instala Java necessário para rodar o JMeter
+          sudo apt-get install -y openjdk-11-jdk  # Instala Java necessário
           wget https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.5.tgz
           tar -xvzf apache-jmeter-5.5.tgz
           export PATH=$PATH:$(pwd)/apache-jmeter-5.5/bin  # Adiciona JMeter ao PATH
 
-      - name: Verify JMeter Installation
-        run: jmeter --version  # Verifica se o JMeter está instalado corretamente
-
-      - name: Create reports directory
-        run: mkdir -p PerformanceDigital/reports/jtl PerformanceDigital/reports/html
-
       - name: Run JMeter Tests
         run: |
+          mkdir -p reports/jtl reports/html  # Cria os diretórios para relatórios
           for test_file in ./PerformanceDigital/**/*.jmx; do
             echo "Running JMeter test: $test_file"
-            jmeter -n -t "$test_file" -l ./PerformanceDigital/reports/jtl/"$(basename "$test_file" .jmx)".jtl -e -o ./PerformanceDigital/reports/html/"$(basename "$test_file" .jmx)"
+            jmeter -n -t "$test_file" -l reports/jtl/"$(basename "$test_file" .jmx)".jtl -e -o reports/html/"$(basename "$test_file" .jmx)" || echo "Test $test_file failed, but continuing..."
           done
-        continue-on-error: true  # Continua mesmo se o teste falhar
-
-      - name: Upload JTL Results
-        uses: actions/upload-artifact@v3
-        with:
-          name: jmeter-results
-          path: PerformanceDigital/reports/jtl/**/*.jtl
-          if-no-files-found: error
 
       - name: Upload HTML Reports
         uses: actions/upload-artifact@v3
         with:
-          name: jmeter-reports
-          path: PerformanceDigital/reports/html
-          if-no-files-found: error
+          name: jmeter-html-report
+          path: reports/html
