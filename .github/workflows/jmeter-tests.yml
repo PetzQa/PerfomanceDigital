@@ -18,7 +18,7 @@ jobs:
         run: |
           for test_file in ./PerformanceDigital/**/*.jmx; do
             echo "Running JMeter test: $test_file"
-            jmeter -n -t "$test_file" -l ./PerformanceDigital/reports/jtl/"$(basename "$test_file" .jmx)".jtl -e -o ./PerformanceDigital/reports/html/"$(basename "$test_file" .jmx)"
+            jmeter -n -t "$test_file" -l ./PerformanceDigital/reports/jtl/"$(basename "$test_file" .jmx)".jtl  # Executa o teste JMeter e salva o JTL
           done
         continue-on-error: true  # Continua mesmo se o teste falhar
 
