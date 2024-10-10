@@ -1,38 +1,44 @@
-name: Test JMeter Action
+name: Run JMeter Tests
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches: [main]
+on: [push]
 
 jobs:
-  action_build:
+  jmeter:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checar repositório
+        uses: actions/checkout@v2
 
-      - name: Run JMeter Action on a test
-        uses: rbhadti94/apache-jmeter-action@v0.5.0
-        with:
-          testFilePath: tests/sample_test.jmx
-          outputReportsFolder: reports/
-          args: "--loglevel INFO"
+      - name: Instalar Java e pacotes necessários
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-11-jdk ca-certificates-java
 
-      - name: Run JMeter Action on other tests
-        uses: rbhadti94/apache-jmeter-action@v0.5.0
-        with:
-          testFilePath: other-tests/
-          outputReportsFolder: other_reports/
-          args: "--loglevel INFO"
+      - name: Configurar JAVA_HOME
+        run: echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" >> $GITHUB_ENV
 
-      - uses: actions/upload-artifact@v1
-        with:
-          name: jmeter-test-results
-          path: reports/
+      - name: Verificar Java
+        run: java -version
 
-      - uses: actions/upload-artifact@v1
+      - name: Criar diretório para relatórios
+        run: mkdir -p reports
+
+      - name: Rodar testes JMeter
+        uses: QAInsights/PerfAction@v5.6.2
         with:
-          name: jmeter-test-results-other
-          path: other_reports/
+          test-plan-path: ./TestPlans/**/*.jmx # Lê todos os arquivos .jmx
+          args: "-e -o ./reports/html/"
+
+      - name: Upload Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: jmeter-results
+          path: result.jtl
+          if-no-files-found: error
+
+      - name: Upload HTML Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: jmeter-html-reports
+          path: reports
+          if-no-files-found: error
