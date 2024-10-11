@@ -22,23 +22,12 @@ jobs:
       - name: Create reports directory
         run: mkdir -p reports
 
-      - name: Download JMeter
-        run: |
-          wget https://downloads.apache.org/jmeter/binaries/apache-jmeter-5.5.1.tgz  # Atualizada para a versão 5.5.1
-          tar -xvzf apache-jmeter-5.5.1.tgz
-          export PATH=$PATH:$(pwd)/apache-jmeter-5.5.1/bin  # Ajuste para a versão correta
-          echo "JMeter adicionado ao PATH."
-
       - name: Run JMeter Tests
-        uses: QAInsights/PerfAction@v5.6.2
+        uses: scacap/action-surefire-report@v2
         with:
-          test-plan-path: ./TestPlans/seu_plano_de_teste.jmx
-          args: "-e -o ./reports/html/"
-
-      - name: Copy files
-        run: |
-          mkdir -p ${{ github.workspace }}/artifact
-          cp -R ${{ github.workspace }}/* ${{ github.workspace }}/artifact
+          test-file: ./TestPlans/seu_plano_de_teste.jmx
+          jmeter-version: '5.5.1'  # Especifica a versão do JMeter
+          report-dir: './reports'   # Diretório onde os relatórios HTML serão gerados
 
       - name: Upload JMeter Results (JTL)
         uses: actions/upload-artifact@v3
@@ -55,9 +44,3 @@ jobs:
           path: reports
           if-no-files-found: error
           include-hidden-files: false
-
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: drop
-          path: ${{ github.workspace }}/artifact
