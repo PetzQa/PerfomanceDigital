@@ -3,7 +3,7 @@ name: JMeter Tests
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   jmeter:
