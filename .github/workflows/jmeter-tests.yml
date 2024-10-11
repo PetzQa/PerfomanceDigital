@@ -3,7 +3,7 @@ name: JMeter Tests
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   jmeter:
@@ -23,9 +23,9 @@ jobs:
         run: mkdir -p reports
 
       - name: Run JMeter Tests
-        uses: scacap/action-surefire-report@v2
+        uses: wintonj/jmeter-action@v1  # Ajustado para usar a ação do Apache JMeter
         with:
-          test-file: ./TestPlans/seu_plano_de_teste.jmx
+          test-file: ./TestPlans/seu_plano_de_teste.jmx  # Caminho do seu arquivo JMX
           jmeter-version: '5.5.1'  # Especifica a versão do JMeter
           report-dir: './reports'   # Diretório onde os relatórios HTML serão gerados
 
